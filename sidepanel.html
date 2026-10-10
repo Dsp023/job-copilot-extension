@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobCopilot AI</title>
+  <link rel="icon" type="image/png" href="icons/icon-32.png">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header class="app-header">
+    <div class="brand-bar">
+      <div class="brand-identity">
+        <img src="icons/icon-32.png" width="24" height="24" alt="JobCopilot" style="border-radius: 6px; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);">
+        <span class="brand-name">JobCopilot</span>
+        <span class="brand-tag">PRO</span>
+      </div>
+      <div id="sync-pill" class="sync-status" title="Cloud Engine Connected">
+        <span class="sync-dot"></span>
+        <span id="sync-label">Online</span>
+      </div>
+    </div>
+
+    <!-- MAIN APP TABS -->
+    <nav class="nav-tabs">
+      <button class="nav-tab-btn active" data-tab="tab-scanner">
+        <span>🎯</span> Job Match
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-profile">
+        <span>👤</span> My Profile
+      </button>
+    </nav>
+  </header>
+
+  <!-- TAB 1: JOB SCANNER & MATCH ANALYSIS -->
+  <main id="tab-scanner" class="tab-content active">
+
+    <!-- Empty State: Hero Scanner -->
+    <section id="hero-scanner" class="hero-scanner-box">
+      <div class="hero-icon-orbit">🎯</div>
+      <h2 class="hero-headline">Scan Current Job Post</h2>
+      <p class="hero-subhead">
+        Navigate to any job post on LinkedIn, Indeed, Wellfound, Greenhouse, or Lever, then click below.
+      </p>
+      <button id="scan-page-btn" class="btn-saas btn-primary-gradient btn-full">
+        <span>⚡</span> Scan Active Job Post
+      </button>
+      <div style="margin-top: 14px;">
+        <button id="load-sample-jd-btn" class="btn-saas btn-secondary-white btn-sm">
+          Try with Demo Job Post
+        </button>
+      </div>
+    </section>
+
+    <!-- Missing Resume Alert -->
+    <div id="resume-warning-banner" class="saas-alert saas-alert-warning" style="display: none;">
+      <span>⚠️</span>
+      <div style="flex: 1;">
+        <strong>Resume Needed:</strong> Add your resume in the <em>My Profile</em> tab to generate personalized scores & interview coaching.
+        <div style="margin-top: 6px;">
+          <button id="go-to-profile-btn" class="btn-saas btn-secondary-white btn-sm">
+            Go to My Profile →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scanned Job Info Banner -->
+    <section id="scanned-card" class="scanned-banner" style="display: none;">
+      <div class="scanned-header-row">
+        <div>
+          <h3 id="display-role-title" class="scanned-role">Senior Full Stack Engineer</h3>
+          <div id="display-company-name" class="scanned-company">Target Company</div>
+        </div>
+        <span id="display-source-badge" class="site-pill">linkedin.com</span>
+      </div>
+
+      <div class="scanned-stats-bar">
+        <span id="display-char-count">0 characters extracted</span>
+        <div style="display: flex; gap: 8px;">
+          <button id="toggle-jd-preview-btn" class="btn-saas btn-secondary-white btn-sm" style="font-size: 11px;">
+            Preview Text ▼
+          </button>
+          <button id="rescan-btn" class="btn-saas btn-secondary-white btn-sm" style="font-size: 11px;">
+            Re-scan
+          </button>
+        </div>
+      </div>
+
+      <!-- Collapsible raw text preview -->
+      <div id="jd-preview-drawer" style="display: none; margin-top: 8px;">
+        <textarea id="raw-jd-textarea" class="resume-textarea" style="height: 100px; font-size: 11px;" placeholder="Job Description text..."></textarea>
+      </div>
+
+      <!-- Primary Action CTA -->
+      <div style="margin-top: 12px;">
+        <button id="run-analysis-btn" class="btn-saas btn-primary-gradient btn-full" style="font-size: 13.5px; padding: 10px;">
+          <span>🚀</span> Generate Match & Interview Report
+        </button>
+      </div>
+    </section>
+
+    <!-- Loading Shimmer State -->
+    <section id="loading-panel" class="loading-panel" style="display: none;">
+      <div class="saas-spinner"></div>
+      <div id="loading-step-title" class="loading-step-title">Analyzing Job Fit...</div>
+      <div id="loading-step-sub" class="loading-step-subtitle">Evaluating requirements against candidate profile</div>
+    </section>
+
+    <!-- Error State -->
+    <div id="error-panel" class="saas-alert saas-alert-error" style="display: none;">
+      <span>❌</span>
+      <div style="flex: 1;">
+        <div id="error-headline" style="font-weight: 700; margin-bottom: 2px;">Analysis Error</div>
+        <div id="error-body" style="font-size: 11.5px; margin-bottom: 8px;">Could not connect to analysis engine.</div>
+        <button id="error-retry-action" class="btn-saas btn-secondary-white btn-sm">Retry Analysis</button>
+      </div>
+    </div>
+
+    <!-- READINESS REPORT DASHBOARD -->
+    <section id="results-dashboard" style="display: none;">
+      
+      <!-- 1. SaaS Readiness Score Hero Card -->
+      <div class="readiness-score-card">
+        <div class="score-radial">
+          <svg width="76" height="76" viewBox="0 0 76 76">
+            <circle class="radial-bg" cx="38" cy="38" r="31"></circle>
+            <circle id="score-radial-progress" class="radial-bar" cx="38" cy="38" r="31" stroke-dasharray="194.8" stroke-dashoffset="194.8" stroke="#10b981"></circle>
+          </svg>
+          <div class="radial-center">
+            <span id="score-percentage-num" class="radial-number">0%</span>
+            <span class="radial-label">Match</span>
+          </div>
+        </div>
+        <div class="score-meta">
+          <span id="score-tier-badge" class="tier-pill tier-strong">Top Tier Fit</span>
+          <div id="report-role-title" class="score-headline">Software Engineer</div>
+          <div id="report-company-name" style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;">Acme Corp</div>
+          <div id="report-stats-line" class="score-summary-counts">0 of 0 core skills matched</div>
+        </div>
+      </div>
+
+      <!-- 2. Segmented Navigation Bar -->
+      <div class="segmented-nav">
+        <button class="segment-btn active" data-section="all-sections">Overview</button>
+        <button class="segment-btn" data-section="section-skills">Requirements</button>
+        <button class="segment-btn" data-section="section-gaps">Gaps</button>
+        <button class="segment-btn" data-section="section-interview">Interview</button>
+        <button class="segment-btn" data-section="section-resume">Resume</button>
+      </div>
+
+      <!-- 3. Core Requirements Card -->
+      <section id="section-skills" class="saas-card report-section">
+        <div class="saas-card-header">
+          <span class="saas-card-title"><span>🎯</span> Core Requirements</span>
+        </div>
+        <div class="chip-filter-bar">
+          <button class="chip-filter-btn active" data-filter="all">All (<span id="count-all">0</span>)</button>
+          <button class="chip-filter-btn" data-filter="matched">Matched (<span id="count-matched">0</span>)</button>
+          <button class="chip-filter-btn" data-filter="weak">Weak (<span id="count-weak">0</span>)</button>
+          <button class="chip-filter-btn" data-filter="missing">Missing (<span id="count-missing">0</span>)</button>
+        </div>
+        <div id="skills-deck" class="skills-deck">
+          <!-- Skill tag pills injected via JS -->
+        </div>
+      </section>
+
+      <!-- 4. High-Yield Skill Gaps Card -->
+      <section id="section-gaps" class="saas-card report-section">
+        <div class="saas-card-header">
+          <span class="saas-card-title"><span>⚡</span> High-Yield Study Plan</span>
+        </div>
+        <div id="gaps-container">
+          <!-- Gap cards injected via JS -->
+        </div>
+      </section>
+
+      <!-- 5. Customized Interview Prep Card -->
+      <section id="section-interview" class="saas-card report-section">
+        <div class="saas-card-header">
+          <span class="saas-card-title"><span>💡</span> Targeted Interview Prep</span>
+        </div>
+        <div id="interview-container">
+          <!-- Collapsible interview accordions injected via JS -->
+        </div>
+      </section>
+
+      <!-- 6. ATS Resume Action Checklist Card -->
+      <section id="section-resume" class="saas-card report-section">
+        <div class="saas-card-header">
+          <span class="saas-card-title"><span>✍️</span> Resume Action Checklist</span>
+          <button id="copy-checklist-btn" class="btn-saas btn-secondary-white btn-sm" title="Copy action checklist">
+            Copy
+          </button>
+        </div>
+        <div id="checklist-container">
+          <!-- Checkable action items injected via JS -->
+        </div>
+      </section>
+
+      <!-- Bottom Utility Bar -->
+      <div class="utility-grid">
+        <button id="export-markdown-btn" class="btn-saas btn-secondary-white">
+          <span>📋</span> Copy Full Report
+        </button>
+        <button id="scan-new-btn" class="btn-saas btn-secondary-white">
+          <span>🔄</span> Scan Another Job
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- TAB 2: MY RESUME & PROFILE -->
+  <main id="tab-profile" class="tab-content">
+    
+    <!-- Profile Completeness Hero -->
+    <section class="profile-hero">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <span style="font-weight: 700; font-size: 13px; color: #1e3a8a;">Candidate Profile</span>
+        <span id="profile-strength-label" style="font-size: 11px; font-weight: 700; color: #2563eb;">Ready ✓</span>
+      </div>
+      <div class="profile-progress-bar">
+        <div id="profile-progress-fill" class="profile-progress-fill" style="width: 100%;"></div>
+      </div>
+      <p style="font-size: 11px; color: #475569; margin-top: 4px;">
+        JobCopilot evaluates every job post against this profile. Keep it updated with your latest stack and accomplishments.
+      </p>
+    </section>
+
+    <!-- Resume Editor Card -->
+    <section class="saas-card">
+      <div class="saas-card-header">
+        <span class="saas-card-title"><span>📄</span> Plaintext Resume & Skills</span>
+      </div>
+
+      <textarea id="profile-resume-textarea" class="resume-textarea" placeholder="Paste your resume or list your skills, experience, and projects here... (e.g. 5 years Full Stack Developer with React, TypeScript, Node.js, PostgreSQL, Docker, AWS...)"></textarea>
+
+      <div class="meta-count-bar">
+        <span>Words: <strong id="profile-word-count">0</strong></span>
+        <span>Characters: <strong id="profile-char-count">0</strong></span>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <button id="save-resume-btn" class="btn-saas btn-primary-gradient btn-full">
+          Save Resume Profile
+        </button>
+      </div>
+
+      <div id="profile-save-status" class="saas-alert saas-alert-success" style="display: none; margin-top: 10px; margin-bottom: 0;">
+        <span>✓</span> Profile saved successfully!
+      </div>
+    </section>
+
+    <!-- Presets -->
+    <section class="saas-card">
+      <div class="saas-card-header">
+        <span class="saas-card-title"><span>⚡</span> Quick Template</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="load-sample-profile-btn" class="btn-saas btn-secondary-white btn-sm btn-full">
+          Load Sample Full-Stack Resume
+        </button>
+        <button id="clear-profile-btn" class="btn-saas btn-secondary-white btn-sm" style="color: var(--danger);">
+          Clear
+        </button>
+      </div>
+    </section>
+
+    <!-- Advanced Settings (Discrete Accordion) -->
+    <div style="margin-top: 12px; text-align: center;">
+      <button id="toggle-advanced-btn" style="background: none; border: none; font-size: 11px; color: var(--text-light); cursor: pointer; text-decoration: underline;">
+        Advanced Settings ⚙️
+      </button>
+      <div id="advanced-settings-drawer" style="display: none; margin-top: 8px; text-align: left;" class="saas-card">
+        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">
+          API Gateway Endpoint:
+        </label>
+        <input id="api-endpoint-input" type="text" value="http://localhost:3001" style="width: 100%; padding: 6px 8px; font-size: 11.5px; border: 1px solid var(--border); border-radius: 6px; outline: none;">
+      </div>
+    </div>
+
+  </main>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
